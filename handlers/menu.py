@@ -1,5 +1,6 @@
 from aiogram import Router, F, types
 from aiogram.filters.command import Command
+from config import db
 import sqlite3
 
 
@@ -21,35 +22,20 @@ async def show_shop(message: types.Message):
     await message.answer("Выберите категорию", reply_markup=kb)
 
 
-@menu_router.message(F.text == "Пицца")
-async def show_drama(message: types.Message):
-    category = message.text
-    connection = sqlite3.connect("db.sqlite3")
-    cursor = connection.cursor()
-    query = cursor.execute("SELECT * FROM meals WHERE category_id = 2")
-    meals = query.fetchall()
+categories = ("пицца", "суши")
+
+@menu_router.message(F.text.lower().in_(categories))
+async def show_meals(message: types.Message):
+    category = message.text.capitalize()  # одно из genres
+    meals = await db.fetch("""
+            SELECT * FROM meals
+            INNER JOIN categories ON meals.category_id = categories.id
+            WHERE categories.name = ?
+        """, (category,))
     await message.answer(f"Блюда из {category}")
     for meal in meals:
-        # Assuming 'image' is the fourth column, index 3
-        photo = types.FSInputFile(meal[3])
+        photo = types.FSInputFile(meal['image'])
         await message.answer_photo(
             photo=photo,
-            caption=f"{meal[1]} - {meal[2]} сом"  # name at index 1, price at index 2
+            caption=f"{meal['name']} - {meal['price']} сом"
         )
-
-
-@menu_router.message(F.text == "Суши")
-async def show_drama(message: types.Message):
-    category = message.text
-    connection = sqlite3.connect("db.sqlite3")
-    cursor = connection.cursor()
-    query = cursor.execute("SELECT * FROM meals WHERE category_id = 1")
-    meals = query.fetchall()
-    await message.answer(f"Блюад из {category}")
-    for meal in meals:
-        photo = types.FSInputFile(meal[3])
-        await message.answer_photo(
-            photo=photo,
-            caption=f"{meal[1]} - {meal[2]} сом"
-        )
-
