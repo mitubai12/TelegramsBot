@@ -10,7 +10,7 @@ async def start_handler(message: types.Message):
     kb = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                types.InlineKeyboardButton(text="Our site", url="https://geeks.kg")
+                types.InlineKeyboardButton(text="Our menu", callback_data="menu")
             ],
             [
                 types.InlineKeyboardButton(text="Our Instagram", url="https://www.instagram")
